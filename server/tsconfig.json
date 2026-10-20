@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["identify-server.ts"]
+  "include": ["identify-server.ts", "try-identify.ts"]
 }
