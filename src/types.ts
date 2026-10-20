@@ -35,4 +35,6 @@ export type Catch = {
   photoUri: string;
   caughtAt: string; // ISO 8601
   memo: string;
+  place?: string; // 잡은 곳
+  lengthCm?: number; // 몸길이
 };

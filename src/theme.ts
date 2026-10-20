@@ -8,4 +8,6 @@ export const colors = {
   border: '#DCE3EA',
   warn: '#B54708',
   warnBg: '#FFF4E5',
+  danger: '#C4320A',
+  primarySoft: '#E6F1FA',
 };

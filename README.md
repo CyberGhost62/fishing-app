@@ -1,18 +1,20 @@
 # 물고기 도감 (프로토타입)
 
-물고기 사진을 찍으면 어종을 알려주고, 손질법·서식지·추천 미끼를 보여주고, 잡은 물고기를 내 도감에 모으는 앱입니다. 한국 인기 어종 30종(바다 25, 민물 5)으로 시작합니다.
+잡은 물고기 사진을 남기고 어종을 골라 내 도감에 모으고, 손질법·서식지·추천 미끼를 보여주는 앱입니다. 사진으로 어종을 알려주는 AI 식별은 마지막 단계로 미뤄 두었습니다. 한국 인기 어종 30종(바다 25, 민물 5)으로 시작합니다.
 
 ## 구성
 
 | 경로 | 내용 |
 |---|---|
-| `App.tsx`, `src/` | Expo(React Native) 앱. 홈 → 식별 결과 → 어종 상세 → 내 도감 |
+| `src/app/` | Expo Router 화면. 탭(홈 · 내 기록 · 도감), 어종 상세, 기록 추가·상세·수정 |
+| `src/components/` | 공용 UI, 기록 입력 폼, 어종 고르기 모달 |
+| `src/lib/` | 기록 저장(`dex.ts`), 사진 고르기, 날짜·검색 도우미, 식별 서버 호출(`identify.ts`, 지금은 화면에서 쓰지 않음) |
 | `src/data/species.ts` | 30종 어종 데이터 (초안, 출처 검수 전) |
 | `server/identify-server.ts` | 사진을 Claude 비전 모델로 식별하는 작은 Node 서버. API 키를 앱에 넣지 않으려고 분리 |
 
 ## 실행 방법
 
-1. 식별 서버
+1. 식별 서버 (지금은 선택)
    ```bash
    cd server
    npm install
@@ -21,9 +23,10 @@
 2. 앱
    ```bash
    npm install
-   EXPO_PUBLIC_IDENTIFY_URL=http://<PC 내부 IP>:8787/identify npx expo start
+   npx expo start          # 휴대폰 Expo Go로 QR 코드 찍기
+   npx expo start --web    # 브라우저에서 보기
    ```
-   휴대폰에 Expo Go를 설치하고 QR 코드를 찍으면 실행됩니다.
+   식별 서버는 AI 식별을 다시 붙일 때만 필요합니다.
 
 ## 식별 방식
 
