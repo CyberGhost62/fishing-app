@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "fishing-app",
+    "name": "물고기 도감",
     "slug": "fishing-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,6 +20,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "잡은 물고기 사진을 골라 어종을 식별하려면 사진 접근이 필요합니다.",
+          "cameraPermission": "물고기를 촬영해 어종을 식별하려면 카메라 접근이 필요합니다."
+        }
+      ]
+    ]
   }
 }
