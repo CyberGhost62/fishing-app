@@ -38,6 +38,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="map"
+        options={{
+          title: '지도',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabIcon name={focused ? 'map' : 'map-outline'} size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="dex"
         options={{
           title: '도감',

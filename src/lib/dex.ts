@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Directory, File, Paths } from 'expo-file-system';
 import { useEffect, useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
-import type { Catch } from '../types';
+import type { Catch, Coords } from '../types';
 
 const STORAGE_KEY = 'dex/catches/v1';
 
@@ -64,6 +64,7 @@ export type CatchInput = {
   memo?: string;
   place?: string;
   lengthCm?: number;
+  location?: Coords;
 };
 
 export async function addCatch(input: CatchInput) {
@@ -78,12 +79,13 @@ export async function addCatch(input: CatchInput) {
     memo: input.memo ?? '',
     place: input.place,
     lengthCm: input.lengthCm,
+    location: input.location,
   };
   await save([entry, ...catches]);
   return entry;
 }
 
-export async function updateCatch(id: string, patch: Partial<Pick<Catch, 'memo' | 'place' | 'lengthCm' | 'speciesId'>>) {
+export async function updateCatch(id: string, patch: Partial<Pick<Catch, 'memo' | 'place' | 'lengthCm' | 'speciesId' | 'location'>>) {
   await load();
   await save(catches.map((c) => (c.id === id ? { ...c, ...patch } : c)));
 }
@@ -93,6 +95,12 @@ export async function deleteCatch(id: string) {
   const target = catches.find((c) => c.id === id);
   await save(catches.filter((c) => c.id !== id));
   if (target) deletePhoto(target.photoUri);
+}
+
+/** 위치 동의를 철회하면서 저장된 좌표를 모두 지울 때 씁니다. */
+export async function clearAllLocations() {
+  await load();
+  await save(catches.map(({ location: _location, ...rest }) => rest));
 }
 
 function subscribe(listener: () => void) {

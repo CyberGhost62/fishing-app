@@ -30,7 +30,17 @@
           "cameraPermission": "잡은 물고기를 촬영해 기록하려면 카메라 접근이 필요합니다."
         }
       ],
-      "expo-router"
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "잡은 물고기를 지도에 표시하고 내 위치를 보여주려면 위치 접근이 필요합니다.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
+        }
+      ],
+      "react-native-maps"
     ]
   }
 }

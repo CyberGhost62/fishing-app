@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -7,11 +8,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SPECIES_BY_ID } from '../data/species';
+import { useLocationConsent, useLocationPermission } from '../lib/location';
 import { pickPhoto } from '../lib/photo';
 import { colors } from '../theme';
 import { SpeciesPicker } from './SpeciesPicker';
@@ -23,23 +26,36 @@ export type CatchFormValues = {
   place: string;
   length: string;
   memo: string;
+  /** 새 기록: 지금 위치를 저장할지. 수정: 저장된 위치를 남길지. */
+  keepLocation: boolean;
 };
 
 /** 새 기록과 기록 수정에서 함께 쓰는 입력 폼. */
 export function CatchForm({
   initial,
   photoEditable,
+  locationMode,
   submitLabel,
   onSubmit,
 }: {
   initial: CatchFormValues;
   photoEditable: boolean;
+  /** new: 저장할 때 현재 위치를 잡음. edit-saved: 이미 저장된 위치가 있음. edit-none: 위치 없음. */
+  locationMode: 'new' | 'edit-saved' | 'edit-none';
   submitLabel: string;
   onSubmit: (values: CatchFormValues & { photoUri: string; speciesId: string; lengthCm?: number }) => Promise<void>;
 }) {
   const [values, setValues] = useState(initial);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { agreed } = useLocationConsent();
+  const { permission, refresh } = useLocationPermission();
+  // 동의 화면에서 돌아오면 권한을 다시 확인합니다.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
   const set = <K extends keyof CatchFormValues>(key: K, v: CatchFormValues[K]) => setValues((s) => ({ ...s, [key]: v }));
 
   const species = values.speciesId ? SPECIES_BY_ID[values.speciesId] : undefined;
@@ -158,6 +174,53 @@ export function CatchForm({
           />
         </View>
 
+        {locationMode === 'new' ? (
+          agreed && permission === 'granted' ? (
+            <View style={styles.switchRow}>
+              <Ionicons name="location-outline" size={20} color={colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>잡은 위치 남기기</Text>
+                <Text style={styles.muted}>저장할 때 지금 있는 자리를 지도에 표시해요.</Text>
+              </View>
+              <Switch
+                value={values.keepLocation}
+                onValueChange={(v) => set('keepLocation', v)}
+                trackColor={{ true: colors.primary }}
+                accessibilityLabel="잡은 위치 남기기"
+              />
+            </View>
+          ) : agreed ? (
+            <View style={styles.switchRow}>
+              <Ionicons name="location-outline" size={20} color={colors.muted} />
+              <Text style={[styles.muted, { flex: 1 }]}>위치 권한이 꺼져 있어 이번 기록에는 위치가 저장되지 않아요.</Text>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => router.push('/location-consent')}
+              style={({ pressed }) => [styles.switchRow, pressed && { opacity: 0.7 }]}
+              accessibilityRole="button"
+            >
+              <Ionicons name="map-outline" size={20} color={colors.primary} />
+              <Text style={[styles.muted, { flex: 1 }]}>위치 사용에 동의하면 잡은 곳을 지도에 표시할 수 있어요.</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+            </Pressable>
+          )
+        ) : locationMode === 'edit-saved' ? (
+          <View style={styles.switchRow}>
+            <Ionicons name="location-outline" size={20} color={values.keepLocation ? colors.primary : colors.muted} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>저장된 위치</Text>
+              <Text style={styles.muted}>{values.keepLocation ? '이 기록에 잡은 위치가 저장돼 있어요.' : '저장하면 위치가 지워져요.'}</Text>
+            </View>
+            <Switch
+              value={values.keepLocation}
+              onValueChange={(v) => set('keepLocation', v)}
+              trackColor={{ true: colors.primary }}
+              accessibilityLabel="저장된 위치 남기기"
+            />
+          </View>
+        ) : null}
+
         <Button label={busy ? '저장하는 중…' : submitLabel} onPress={submit} disabled={busy || !!missing || lengthInvalid} />
         {missing ? <Text style={styles.hint}>{missing}</Text> : null}
       </ScrollView>
@@ -220,6 +283,16 @@ const styles = StyleSheet.create({
   inputBare: { flex: 1, minWidth: 0, paddingVertical: 12, fontSize: 16, color: colors.text },
   inputError: { borderColor: colors.danger },
   memo: { minHeight: 96 },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 14,
+  },
   muted: { color: colors.muted, fontSize: 14 },
   error: { color: colors.danger, fontSize: 13, marginTop: -8 },
   hint: { color: colors.muted, fontSize: 13, textAlign: 'center', marginTop: -8 },

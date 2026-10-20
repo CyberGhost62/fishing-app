@@ -6,6 +6,7 @@ import { Button, EmptyState, Section } from '../../../components/ui';
 import { SPECIES, SPECIES_BY_ID } from '../../../data/species';
 import { deleteCatch, useCatches } from '../../../lib/dex';
 import { formatDateTime } from '../../../lib/format';
+import { useLocationConsent } from '../../../lib/location';
 import { confirmDestructive } from '../../../lib/photo';
 import { colors } from '../../../theme';
 
@@ -13,6 +14,7 @@ export default function CatchDetailScreen() {
   const { id, saved } = useLocalSearchParams<{ id: string; saved?: string }>();
   const { catches, ready } = useCatches();
   const [deleting, setDeleting] = useState(false);
+  const { agreed: locationAgreed } = useLocationConsent();
   const item = catches.find((c) => c.id === id);
 
   if (!ready || deleting) return null;
@@ -57,6 +59,17 @@ export default function CatchDetailScreen() {
         {item.place ? <Fact icon="location-outline" text={item.place} /> : null}
         {item.lengthCm ? <Fact icon="resize-outline" text={`${item.lengthCm}cm`} /> : null}
       </View>
+
+      {item.location && locationAgreed ? (
+        <Pressable
+          onPress={() => router.navigate({ pathname: '/map', params: { focus: item.id } })}
+          style={({ pressed }) => [styles.mapLink, pressed && { opacity: 0.7 }]}
+          accessibilityRole="button"
+        >
+          <Ionicons name="map-outline" size={18} color={colors.primary} />
+          <Text style={styles.mapLinkText}>잡은 곳 지도에서 보기</Text>
+        </Pressable>
+      ) : null}
 
       <Section title="메모">
         <Text style={item.memo ? styles.memo : styles.muted}>{item.memo || '남긴 메모가 없어요.'}</Text>
@@ -129,5 +142,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   speciesName: { fontSize: 16, fontWeight: '700', color: colors.primary },
+  mapLink: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingVertical: 4 },
+  mapLinkText: { color: colors.primary, fontSize: 15, fontWeight: '600' },
   actions: { flexDirection: 'row', gap: 12, marginTop: 4 },
 });

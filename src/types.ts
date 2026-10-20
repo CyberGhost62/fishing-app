@@ -37,4 +37,7 @@ export type Catch = {
   memo: string;
   place?: string; // 잡은 곳
   lengthCm?: number; // 몸길이
+  location?: Coords; // 잡은 위치 (위치 동의한 경우만)
 };
+
+export type Coords = { latitude: number; longitude: number };

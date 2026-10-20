@@ -20,6 +20,7 @@ export default function RootLayout() {
         <Stack.Screen name="catch/new" options={{ title: '물고기 기록하기', presentation: 'modal' }} />
         <Stack.Screen name="catch/[id]/index" options={{ title: '기록' }} />
         <Stack.Screen name="catch/[id]/edit" options={{ title: '기록 수정', presentation: 'modal' }} />
+        <Stack.Screen name="location-consent" options={{ title: '위치 정보 동의', presentation: 'modal' }} />
       </Stack>
       <StatusBar style="dark" />
     </>

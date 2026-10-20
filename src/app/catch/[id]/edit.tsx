@@ -19,8 +19,10 @@ export default function EditCatchScreen() {
         place: item.place ?? '',
         length: item.lengthCm ? String(item.lengthCm) : '',
         memo: item.memo,
+        keepLocation: !!item.location,
       }}
       photoEditable={false}
+      locationMode={item.location ? 'edit-saved' : 'edit-none'}
       submitLabel="수정 완료"
       onSubmit={async (v) => {
         try {
@@ -29,6 +31,7 @@ export default function EditCatchScreen() {
             place: v.place.trim() || undefined,
             lengthCm: v.lengthCm,
             memo: v.memo.trim(),
+            location: v.keepLocation ? item.location : undefined,
           });
           router.back();
         } catch (e) {
