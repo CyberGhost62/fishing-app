@@ -6,10 +6,12 @@ import { Button, CatchRow, ProgressBar } from '../../components/ui';
 import { SPECIES } from '../../data/species';
 import { useCatches } from '../../lib/dex';
 import { pickPhoto, type PhotoSource } from '../../lib/photo';
+import { formatWon, PLANS, TRIAL_DAYS, useSubscription } from '../../lib/subscription';
 import { colors } from '../../theme';
 
 export default function HomeScreen() {
   const { catches } = useCatches();
+  const sub = useSubscription();
   const [busy, setBusy] = useState(false);
   const collected = new Set(catches.map((c) => c.speciesId)).size;
   const recent = catches.slice(0, 3);
@@ -59,6 +61,25 @@ export default function HomeScreen() {
               ? '모든 어종을 모았어요! 🎉'
               : `${SPECIES.length - collected}종 남았어요. 도감에서 아직 못 잡은 물고기를 확인해 보세요.`}
         </Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() => router.push('/paywall')}
+        style={({ pressed }) => [styles.premium, pressed && { opacity: 0.8 }]}
+        accessibilityRole="button"
+      >
+        <Ionicons name={sub.isPremium ? 'star' : 'star-outline'} size={22} color={colors.primary} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={styles.cardTitle}>{sub.isPremium ? '프리미엄 이용 중' : '프리미엄'}</Text>
+          <Text style={styles.muted}>
+            {sub.isPremium
+              ? sub.inTrial
+                ? '무료 체험 중이에요. 구독 정보 보기'
+                : '구독 정보 보기'
+              : `${TRIAL_DAYS}일 무료 체험 · 월 ${formatWon(PLANS.monthly.price)}부터`}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </Pressable>
 
       <View style={styles.sectionHead}>
@@ -113,6 +134,14 @@ const styles = StyleSheet.create({
   count: { fontSize: 15, color: colors.muted },
   countStrong: { fontSize: 22, fontWeight: '800', color: colors.primary },
   muted: { color: colors.muted, fontSize: 14, lineHeight: 20, flexShrink: 1 },
+  premium: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.primarySoft,
+    borderRadius: 12,
+    padding: 16,
+  },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
   more: { color: colors.primary, fontSize: 14, fontWeight: '600' },

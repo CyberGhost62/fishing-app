@@ -35,6 +35,13 @@
 - 지도 화면의 "동의 철회"로 동의를 거두고 저장된 좌표를 모두 지울 수 있습니다.
 - 지도는 `react-native-maps`를 씁니다. Expo Go에서는 바로 동작하고, 웹에서는 좌표 목록으로 대신 보여줍니다. Android 개발·배포 빌드에서는 Google Maps API 키를 `app.json`의 `react-native-maps` 플러그인 `androidGoogleMapsApiKey`로 넣어야 지도가 보입니다(iOS는 Apple 지도라 키가 필요 없음).
 
+## 구독 (프리미엄)
+
+- 7일 무료 체험 후 월 4,900원 또는 연 39,000원. 기록·도감·지도는 무료이고, 프리미엄에는 AI 식별·통계·백업·물때 같은 이후 기능을 묶을 예정입니다(결제 화면에 "준비 중"으로 표시).
+- 결제는 애플·구글 인앱결제를 RevenueCat(`react-native-purchases`)으로 처리합니다. 코드: `src/lib/subscription.ts`, 화면: `src/app/paywall.tsx`.
+- `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`가 있는 개발·배포 빌드에서만 실제 결제를 씁니다. Expo Go·웹·키 없는 빌드는 기기 안에서만 흉내 내는 테스트 모드입니다.
+- 실제 판매 전 준비: App Store Connect·Play Console에 월간/연간 구독 상품(7일 무료 체험 포함) 등록 → RevenueCat에 상품 연결, 권한 이름 `premium`, 현재 Offering에 Monthly/Annual 패키지 → API 키를 EAS 환경 변수로 등록 → `EXPO_PUBLIC_TERMS_URL`, `EXPO_PUBLIC_PRIVACY_URL`에 이용약관·개인정보처리방침 주소.
+
 ## 식별 방식
 
 - 앱이 사진(JPEG base64)을 서버로 보내면, 서버가 지원 어종 30종 목록을 함께 넘겨 Claude(`claude-opus-5-5`, effort `low`)에게 후보 3개와 신뢰도를 JSON으로 받습니다.
