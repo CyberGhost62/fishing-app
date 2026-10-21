@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Chip, EmptyState, ProgressBar, SearchBox } from '../../components/ui';
 import { SPECIES } from '../../data/species';
+import { SPECIES_PHOTOS } from '../../data/speciesPhotos';
 import { useCatches } from '../../lib/dex';
 import { matches } from '../../lib/format';
 import { colors } from '../../theme';
@@ -87,7 +88,16 @@ export default function DexScreen() {
               </View>
             ) : (
               <View style={[styles.thumb, styles.locked]}>
-                <Ionicons name="fish" size={30} color={colors.border} />
+                {SPECIES_PHOTOS[item.id] ? (
+                  <>
+                    <Image source={SPECIES_PHOTOS[item.id]!.source} style={styles.lockedPhoto} resizeMode="cover" />
+                    <View style={styles.lockBadge}>
+                      <Ionicons name="lock-closed" size={12} color={colors.muted} />
+                    </View>
+                  </>
+                ) : (
+                  <Ionicons name="fish" size={30} color={colors.border} />
+                )}
               </View>
             )}
             <Text style={[styles.name, !c && styles.nameLocked]} numberOfLines={1}>
@@ -111,7 +121,24 @@ const styles = StyleSheet.create({
   divider: { width: 1, height: 20, backgroundColor: colors.border },
   cell: { flex: 1 / 3, maxWidth: '32%' },
   thumb: { width: '100%', aspectRatio: 1, borderRadius: 10, backgroundColor: colors.border },
-  locked: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  locked: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  // 못 잡은 어종은 대표 사진을 흐리게 보여줍니다.
+  lockedPhoto: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.3 },
+  lockBadge: {
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    padding: 3,
+  },
   badge: {
     position: 'absolute',
     right: 6,

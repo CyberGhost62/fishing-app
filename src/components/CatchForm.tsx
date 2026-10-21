@@ -17,6 +17,7 @@ import { SPECIES_BY_ID } from '../data/species';
 import { useLocationConsent, useLocationPermission } from '../lib/location';
 import { pickPhoto } from '../lib/photo';
 import { colors } from '../theme';
+import { DateField } from './DateField';
 import { SpeciesPicker } from './SpeciesPicker';
 import { Button } from './ui';
 
@@ -26,6 +27,7 @@ export type CatchFormValues = {
   place: string;
   length: string;
   memo: string;
+  caughtAt: Date;
   /** 새 기록: 지금 위치를 저장할지. 수정: 저장된 위치를 남길지. */
   keepLocation: boolean;
 };
@@ -128,6 +130,8 @@ export function CatchForm({
             <Ionicons name="chevron-down" size={18} color={colors.muted} style={{ marginLeft: 'auto' }} />
           </Pressable>
         </View>
+
+        <DateField value={values.caughtAt} onChange={(d) => set('caughtAt', d)} />
 
         <View style={styles.row2}>
           <View style={[styles.field, { flex: 2 }]}>

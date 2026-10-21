@@ -1,7 +1,8 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, EmptyState, Section } from '../../components/ui';
 import { SPECIES_BY_ID } from '../../data/species';
+import { SPECIES_PHOTOS } from '../../data/speciesPhotos';
 import { useCatches } from '../../lib/dex';
 import { formatDate } from '../../lib/format';
 import { colors } from '../../theme';
@@ -27,6 +28,7 @@ export default function SpeciesScreen() {
     return <EmptyState icon="fish-outline" title="어종을 찾을 수 없어요" message="도감 목록에서 다시 골라 주세요." />;
   }
 
+  const photo = SPECIES_PHOTOS[species.id];
   const biggest = mine.reduce<number | undefined>(
     (max, c) => (c.lengthCm && (!max || c.lengthCm > max) ? c.lengthCm : max),
     undefined,
@@ -35,6 +37,16 @@ export default function SpeciesScreen() {
   return (
     <ScrollView contentContainerStyle={styles.body}>
       <Stack.Screen options={{ title: species.name }} />
+      {photo ? (
+        <View>
+          <Image source={photo.source} style={styles.hero} resizeMode="cover" accessibilityLabel={`${species.name} 대표 사진`} />
+          <Pressable onPress={() => Linking.openURL(photo.sourceUrl)} accessibilityRole="link" hitSlop={6}>
+            <Text style={styles.credit} numberOfLines={2}>
+              사진: {photo.author} · {photo.license} · Wikimedia Commons
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={styles.titleBlock}>
         <View style={styles.tags}>
           <Text style={[styles.tag, species.water === '민물' && styles.tagFresh]}>{species.water}</Text>
@@ -110,6 +122,8 @@ export default function SpeciesScreen() {
 
 const styles = StyleSheet.create({
   body: { padding: 16, gap: 12, paddingBottom: 40 },
+  hero: { width: '100%', aspectRatio: 3 / 2, borderRadius: 12, backgroundColor: colors.border },
+  credit: { fontSize: 11, color: colors.muted, marginTop: 4, textAlign: 'right' },
   titleBlock: { gap: 6 },
   tags: { flexDirection: 'row', gap: 6 },
   tag: {
