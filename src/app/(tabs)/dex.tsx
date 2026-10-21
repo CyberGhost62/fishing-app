@@ -90,7 +90,7 @@ export default function DexScreen() {
               <View style={[styles.thumb, styles.locked]}>
                 {SPECIES_PHOTOS[item.id] ? (
                   <>
-                    <Image source={SPECIES_PHOTOS[item.id]!.source} style={styles.lockedPhoto} resizeMode="cover" />
+                    <Image source={SPECIES_PHOTOS[item.id]!.source} style={styles.lockedPhoto} resizeMode="contain" />
                     <View style={styles.lockBadge}>
                       <Ionicons name="lock-closed" size={12} color={colors.muted} />
                     </View>
@@ -128,9 +128,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+    padding: 4,
   },
-  // 못 잡은 어종은 대표 사진을 흐리게 보여줍니다.
-  lockedPhoto: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.3 },
+  // 못 잡은 어종은 대표 사진 전체를 흐리게 보여줍니다.
+  lockedPhoto: { width: '100%', height: '100%', opacity: 0.7 },
   lockBadge: {
     position: 'absolute',
     right: 6,

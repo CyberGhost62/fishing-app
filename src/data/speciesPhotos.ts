@@ -34,10 +34,10 @@ export const SPECIES_PHOTOS: Record<string, SpeciesPhoto | undefined> = {
   },
   "bollak": {
     source: require("../../assets/species/bollak.jpg"),
-    author: "H. Patterson",
-    license: "Public domain",
-    licenseUrl: "",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Sebastes_inermis.jpg",
+    author: "Izuzuki",
+    license: "CC BY-SA 3.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:AkaMebaru.jpg",
   },
   "borimyeol": {
     source: require("../../assets/species/borimyeol.jpg"),
@@ -48,10 +48,10 @@ export const SPECIES_PHOTOS: Record<string, SpeciesPhoto | undefined> = {
   },
   "bungeo": {
     source: require("../../assets/species/bungeo.jpg"),
-    author: "George Chernilevsky",
-    license: "Public domain",
-    licenseUrl: "",
-    sourceUrl: "https://commons.wikimedia.org/wiki/File:Carassius_wild_golden_fish_2013_G1.jpg",
+    author: "suiryukawase",
+    license: "CC BY 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by/2.0",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Ginbuna.jpg",
   },
   "bungjangeo": {
     source: require("../../assets/species/bungjangeo.jpg"),
