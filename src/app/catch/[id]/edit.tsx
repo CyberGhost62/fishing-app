@@ -19,6 +19,7 @@ export default function EditCatchScreen() {
         place: item.place ?? '',
         length: item.lengthCm ? String(item.lengthCm) : '',
         memo: item.memo,
+        caughtAt: new Date(item.caughtAt),
         keepLocation: !!item.location,
       }}
       photoEditable={false}
@@ -31,6 +32,7 @@ export default function EditCatchScreen() {
             place: v.place.trim() || undefined,
             lengthCm: v.lengthCm,
             memo: v.memo.trim(),
+            caughtAt: v.caughtAt.toISOString(),
             location: v.keepLocation ? item.location : undefined,
           });
           router.back();

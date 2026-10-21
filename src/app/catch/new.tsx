@@ -9,7 +9,7 @@ export default function NewCatchScreen() {
 
   return (
     <CatchForm
-      initial={{ photoUri: photoUri ?? null, speciesId: speciesId ?? null, place: '', length: '', memo: '', keepLocation: true }}
+      initial={{ photoUri: photoUri ?? null, speciesId: speciesId ?? null, place: '', length: '', memo: '', caughtAt: new Date(), keepLocation: true }}
       photoEditable
       locationMode="new"
       submitLabel="도감에 저장"
@@ -23,6 +23,7 @@ export default function NewCatchScreen() {
             place: v.place.trim() || undefined,
             lengthCm: v.lengthCm,
             memo: v.memo.trim(),
+            caughtAt: v.caughtAt.toISOString(),
             location: location ?? undefined,
           });
           router.replace({ pathname: '/catch/[id]', params: { id: entry.id, saved: '1' } });

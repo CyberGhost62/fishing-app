@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SPECIES } from '../data/species';
+import { SPECIES_PHOTOS } from '../data/speciesPhotos';
 import { matches } from '../lib/format';
 import { colors } from '../theme';
 import type { Water } from '../types';
@@ -65,6 +66,13 @@ export function SpeciesPicker({
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
               >
+                {SPECIES_PHOTOS[item.id] ? (
+                  <Image source={SPECIES_PHOTOS[item.id]!.source} style={styles.thumb} />
+                ) : (
+                  <View style={[styles.thumb, styles.thumbEmpty]}>
+                    <Ionicons name="fish" size={20} color={colors.border} />
+                  </View>
+                )}
                 <View style={{ flex: 1 }}>
                   <Text style={styles.name}>{item.name}</Text>
                   <Text style={styles.meta} numberOfLines={1}>
@@ -102,12 +110,14 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: colors.card,
     borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
   itemOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+  thumb: { width: 48, height: 48, borderRadius: 8, backgroundColor: colors.border },
+  thumbEmpty: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
   name: { fontSize: 16, fontWeight: '700', color: colors.text },
   meta: { fontSize: 13, color: colors.muted, marginTop: 2 },
 });

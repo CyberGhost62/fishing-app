@@ -19,7 +19,7 @@ function emit() {
 function load() {
   loading ??= AsyncStorage.getItem(STORAGE_KEY)
     .then((raw) => {
-      catches = raw ? (JSON.parse(raw) as Catch[]) : [];
+      catches = raw ? (JSON.parse(raw) as Catch[]).sort(byCaughtAtDesc) : [];
     })
     .catch(() => {
       catches = [];
@@ -31,10 +31,13 @@ function load() {
   return loading;
 }
 
+// 잡은 날짜를 고칠 수 있어 저장할 때마다 잡은 시각 기준 최신순으로 정렬합니다.
+const byCaughtAtDesc = (a: Catch, b: Catch) => b.caughtAt.localeCompare(a.caughtAt);
+
 async function save(next: Catch[]) {
-  catches = next;
+  catches = [...next].sort(byCaughtAtDesc);
   emit();
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(catches));
 }
 
 // 촬영한 사진은 캐시 폴더에 있어 지워질 수 있으니 앱 문서 폴더로 복사해 둡니다.
@@ -65,6 +68,7 @@ export type CatchInput = {
   place?: string;
   lengthCm?: number;
   location?: Coords;
+  caughtAt?: string; // ISO 8601, 없으면 지금
 };
 
 export async function addCatch(input: CatchInput) {
@@ -75,7 +79,7 @@ export async function addCatch(input: CatchInput) {
     id,
     speciesId: input.speciesId,
     photoUri,
-    caughtAt: new Date().toISOString(),
+    caughtAt: input.caughtAt ?? new Date().toISOString(),
     memo: input.memo ?? '',
     place: input.place,
     lengthCm: input.lengthCm,
@@ -85,7 +89,7 @@ export async function addCatch(input: CatchInput) {
   return entry;
 }
 
-export async function updateCatch(id: string, patch: Partial<Pick<Catch, 'memo' | 'place' | 'lengthCm' | 'speciesId' | 'location'>>) {
+export async function updateCatch(id: string, patch: Partial<Pick<Catch, 'memo' | 'place' | 'lengthCm' | 'speciesId' | 'location' | 'caughtAt'>>) {
   await load();
   await save(catches.map((c) => (c.id === id ? { ...c, ...patch } : c)));
 }
