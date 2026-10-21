@@ -1,18 +1,20 @@
 # 물고기 도감 (프로토타입)
 
-물고기 사진을 찍으면 어종을 알려주고, 손질법·서식지·추천 미끼를 보여주고, 잡은 물고기를 내 도감에 모으는 앱입니다. 한국 인기 어종 30종(바다 25, 민물 5)으로 시작합니다.
+잡은 물고기 사진을 남기고 어종을 골라 내 도감에 모으고, 손질법·서식지·추천 미끼를 보여주는 앱입니다. 사진으로 어종을 알려주는 AI 식별은 마지막 단계로 미뤄 두었습니다. 한국 인기 어종 30종(바다 25, 민물 5)으로 시작합니다.
 
 ## 구성
 
 | 경로 | 내용 |
 |---|---|
-| `App.tsx`, `src/` | Expo(React Native) 앱. 홈 → 식별 결과 → 어종 상세 → 내 도감 |
+| `src/app/` | Expo Router 화면. 탭(홈 · 내 기록 · 지도 · 도감), 어종 상세, 기록 추가·상세·수정, 위치 동의 |
+| `src/components/` | 공용 UI, 기록 입력 폼, 어종 고르기 모달 |
+| `src/lib/` | 기록 저장(`dex.ts`), 사진 고르기, 날짜·검색 도우미, 식별 서버 호출(`identify.ts`, 지금은 화면에서 쓰지 않음) |
 | `src/data/species.ts` | 30종 어종 데이터 (초안, 출처 검수 전) |
 | `server/identify-server.ts` | 사진을 Claude 비전 모델로 식별하는 작은 Node 서버. API 키를 앱에 넣지 않으려고 분리 |
 
 ## 실행 방법
 
-1. 식별 서버
+1. 식별 서버 (지금은 선택)
    ```bash
    cd server
    npm install
@@ -21,9 +23,24 @@
 2. 앱
    ```bash
    npm install
-   EXPO_PUBLIC_IDENTIFY_URL=http://<PC 내부 IP>:8787/identify npx expo start
+   npx expo start          # 휴대폰 Expo Go로 QR 코드 찍기
+   npx expo start --web    # 브라우저에서 보기
    ```
-   휴대폰에 Expo Go를 설치하고 QR 코드를 찍으면 실행됩니다.
+   식별 서버는 AI 식별을 다시 붙일 때만 필요합니다.
+
+## 지도와 위치
+
+- 지도 탭은 앱 안의 위치 동의 화면에서 동의하고, 휴대폰 위치 권한까지 허용해야만 열립니다. 동의 전에는 위치를 전혀 읽지 않습니다.
+- 동의한 뒤 물고기를 기록하면 그 자리의 좌표가 함께 저장되고(기록할 때 끌 수 있음), 지도에 핀으로 표시됩니다. 좌표는 기기에만 저장합니다.
+- 지도 화면의 "동의 철회"로 동의를 거두고 저장된 좌표를 모두 지울 수 있습니다.
+- 지도는 `react-native-maps`를 씁니다. Expo Go에서는 바로 동작하고, 웹에서는 좌표 목록으로 대신 보여줍니다. Android 개발·배포 빌드에서는 Google Maps API 키를 `app.json`의 `react-native-maps` 플러그인 `androidGoogleMapsApiKey`로 넣어야 지도가 보입니다(iOS는 Apple 지도라 키가 필요 없음).
+
+## 구독 (프리미엄)
+
+- 7일 무료 체험 후 월 4,900원 또는 연 39,000원. 기록·도감·지도는 무료이고, 프리미엄에는 AI 식별·통계·백업·물때 같은 이후 기능을 묶을 예정입니다(결제 화면에 "준비 중"으로 표시).
+- 결제는 애플·구글 인앱결제를 RevenueCat(`react-native-purchases`)으로 처리합니다. 코드: `src/lib/subscription.ts`, 화면: `src/app/paywall.tsx`.
+- `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`가 있는 개발·배포 빌드에서만 실제 결제를 씁니다. Expo Go·웹·키 없는 빌드는 기기 안에서만 흉내 내는 테스트 모드입니다.
+- 실제 판매 전 준비: App Store Connect·Play Console에 월간/연간 구독 상품(7일 무료 체험 포함) 등록 → RevenueCat에 상품 연결, 권한 이름 `premium`, 현재 Offering에 Monthly/Annual 패키지 → API 키를 EAS 환경 변수로 등록 → `EXPO_PUBLIC_TERMS_URL`, `EXPO_PUBLIC_PRIVACY_URL`에 이용약관·개인정보처리방침 주소.
 
 ## 식별 방식
 
@@ -37,4 +54,4 @@
 - 금어기·금지체장은 해마다 바뀔 수 있어 데이터에 넣지 않았습니다.
 - 어종 사진(대표 이미지)이 아직 없습니다.
 - 도감 기록은 기기에만 저장됩니다(AsyncStorage + 앱 문서 폴더). 계정·동기화는 없습니다.
-- 위치 기록, 지도, 오프라인 식별(자체 분류기)은 이후 단계입니다.
+- 오프라인 식별(자체 분류기)은 이후 단계입니다.

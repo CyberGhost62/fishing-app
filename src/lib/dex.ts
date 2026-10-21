@@ -1,17 +1,49 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Directory, File, Paths } from 'expo-file-system';
-import { useCallback, useEffect, useState } from 'react';
-import type { Catch } from '../types';
+import { useEffect, useSyncExternalStore } from 'react';
+import { Platform } from 'react-native';
+import type { Catch, Coords } from '../types';
 
 const STORAGE_KEY = 'dex/catches/v1';
 
-async function loadCatches(): Promise<Catch[]> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  return raw ? (JSON.parse(raw) as Catch[]) : [];
+// 기록은 화면 여러 곳에서 함께 쓰므로 메모리에 한 벌 두고, 바뀌면 구독한 화면을 다시 그립니다.
+let catches: Catch[] = [];
+let loaded = false;
+let loading: Promise<void> | null = null;
+const listeners = new Set<() => void>();
+
+function emit() {
+  for (const l of listeners) l();
+}
+
+function load() {
+  loading ??= AsyncStorage.getItem(STORAGE_KEY)
+    .then((raw) => {
+      catches = raw ? (JSON.parse(raw) as Catch[]).sort(byCaughtAtDesc) : [];
+    })
+    .catch(() => {
+      catches = [];
+    })
+    .finally(() => {
+      loaded = true;
+      emit();
+    });
+  return loading;
+}
+
+// 잡은 날짜를 고칠 수 있어 저장할 때마다 잡은 시각 기준 최신순으로 정렬합니다.
+const byCaughtAtDesc = (a: Catch, b: Catch) => b.caughtAt.localeCompare(a.caughtAt);
+
+async function save(next: Catch[]) {
+  catches = [...next].sort(byCaughtAtDesc);
+  emit();
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(catches));
 }
 
 // 촬영한 사진은 캐시 폴더에 있어 지워질 수 있으니 앱 문서 폴더로 복사해 둡니다.
+// 웹에는 앱 문서 폴더가 없고 blob 주소는 새로고침하면 사라져, 줄인 JPEG data URL로 저장합니다.
 async function persistPhoto(uri: string, id: string): Promise<string> {
+  if (Platform.OS === 'web') return uri.startsWith('data:') && uri.length < 400_000 ? uri : shrinkForWeb(uri);
   const dir = new Directory(Paths.document, 'catches');
   dir.create({ intermediates: true, idempotent: true });
   const dest = new File(dir, `${id}.jpg`);
@@ -19,26 +51,89 @@ async function persistPhoto(uri: string, id: string): Promise<string> {
   return dest.uri;
 }
 
-export async function addCatch(input: { speciesId: string; photoUri: string; memo?: string }) {
+// 브라우저 저장 공간(약 5MB)에 여러 장이 들어가도록 긴 변을 1080px로 줄입니다.
+async function shrinkForWeb(uri: string): Promise<string> {
+  const img = new globalThis.Image();
+  img.src = uri;
+  await img.decode();
+  const scale = Math.min(1, 1080 / Math.max(img.naturalWidth, img.naturalHeight));
+  const canvas = globalThis.document.createElement('canvas');
+  canvas.width = Math.round(img.naturalWidth * scale);
+  canvas.height = Math.round(img.naturalHeight * scale);
+  canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.7);
+}
+
+function deletePhoto(uri: string) {
+  if (Platform.OS === 'web') return;
+  try {
+    const file = new File(uri);
+    if (file.exists) file.delete();
+  } catch {
+    // 사진이 이미 없으면 기록만 지웁니다.
+  }
+}
+
+export type CatchInput = {
+  speciesId: string;
+  photoUri: string;
+  memo?: string;
+  place?: string;
+  lengthCm?: number;
+  location?: Coords;
+  caughtAt?: string; // ISO 8601, 없으면 지금
+};
+
+export async function addCatch(input: CatchInput) {
+  await load();
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const photoUri = await persistPhoto(input.photoUri, id);
   const entry: Catch = {
     id,
     speciesId: input.speciesId,
     photoUri,
-    caughtAt: new Date().toISOString(),
+    caughtAt: input.caughtAt ?? new Date().toISOString(),
     memo: input.memo ?? '',
+    place: input.place,
+    lengthCm: input.lengthCm,
+    location: input.location,
   };
-  const catches = await loadCatches();
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([entry, ...catches]));
+  await save([entry, ...catches]);
   return entry;
 }
 
+export async function updateCatch(id: string, patch: Partial<Pick<Catch, 'memo' | 'place' | 'lengthCm' | 'speciesId' | 'location' | 'caughtAt'>>) {
+  await load();
+  await save(catches.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+}
+
+export async function deleteCatch(id: string) {
+  await load();
+  const target = catches.find((c) => c.id === id);
+  await save(catches.filter((c) => c.id !== id));
+  if (target) deletePhoto(target.photoUri);
+}
+
+/** 위치 동의를 철회하면서 저장된 좌표를 모두 지울 때 씁니다. */
+export async function clearAllLocations() {
+  await load();
+  await save(catches.map(({ location: _location, ...rest }) => rest));
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+const getCatches = () => catches;
+const getLoaded = () => loaded;
+
+/** 모든 기록 (최신순). */
 export function useCatches() {
-  const [catches, setCatches] = useState<Catch[]>([]);
-  const reload = useCallback(() => {
-    loadCatches().then(setCatches, () => setCatches([]));
+  useEffect(() => {
+    load();
   }, []);
-  useEffect(reload, [reload]);
-  return { catches, reload };
+  const list = useSyncExternalStore(subscribe, getCatches, getCatches);
+  const ready = useSyncExternalStore(subscribe, getLoaded, getLoaded);
+  return { catches: list, ready };
 }

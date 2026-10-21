@@ -2,6 +2,7 @@
   "expo": {
     "name": "물고기 도감",
     "slug": "fishing-app",
+    "scheme": "fishingapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,10 +26,22 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "잡은 물고기 사진을 골라 어종을 식별하려면 사진 접근이 필요합니다.",
-          "cameraPermission": "물고기를 촬영해 어종을 식별하려면 카메라 접근이 필요합니다."
+          "photosPermission": "잡은 물고기 사진을 기록에 남기려면 사진 접근이 필요합니다.",
+          "cameraPermission": "잡은 물고기를 촬영해 기록하려면 카메라 접근이 필요합니다."
         }
-      ]
+      ],
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "잡은 물고기를 지도에 표시하고 내 위치를 보여주려면 위치 접근이 필요합니다.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
+        }
+      ],
+      "react-native-maps",
+      "@react-native-community/datetimepicker"
     ]
   }
 }
